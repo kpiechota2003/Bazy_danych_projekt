@@ -1,4 +1,3 @@
-
 import sqlite3
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
@@ -13,7 +12,7 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
 
-    c.execute("""
+    c.execute(""" 
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             first_name TEXT,
@@ -21,19 +20,19 @@ def init_db():
             username TEXT UNIQUE,
             password TEXT,
             is_admin INTEGER
-        )
+        );
     """)
 
-    c.execute("""
+    c.execute(""" 
         CREATE TABLE IF NOT EXISTS sectors (
             sector_id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             location_gps TEXT,
             map_photo BLOB
-        )
+        );
     """)
 
-    c.execute("""
+    c.execute(""" 
         CREATE TABLE IF NOT EXISTS routes (
             route_id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
@@ -45,10 +44,10 @@ def init_db():
             gps_coordinates TEXT,
             photo BLOB,
             FOREIGN KEY(sector_id) REFERENCES sectors(sector_id)
-        )
+        );
     """)
 
-    c.execute("""
+    c.execute(""" 
         CREATE TABLE IF NOT EXISTS reviews (
             review_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
@@ -56,7 +55,7 @@ def init_db():
             review_text TEXT,
             FOREIGN KEY(user_id) REFERENCES users(user_id),
             FOREIGN KEY(route_id) REFERENCES routes(route_id)
-        )
+        );
     """)
 
     # Add an admin user if none exists
@@ -83,6 +82,8 @@ class ClimbingApp:
         self.password_entry = tk.Entry(self.root, show="*")
         self.password_entry.pack()
         tk.Button(self.root, text="Login", command=self.login).pack()
+        tk.Button(self.root, text="Register", command=self.add_user_form).pack()  # Button to open add user form
+        tk.Button(self.root, text="Forgot Password", command=self.reset_password_form).pack()  # Added reset password button
 
     def login(self):
         username = self.username_entry.get()
@@ -99,6 +100,96 @@ class ClimbingApp:
             self.setup_main_app()
         else:
             messagebox.showerror("Login failed", "Invalid credentials.")
+
+    def reset_password_form(self):
+        def reset_password():
+            username = username_entry.get()
+            new_password = new_password_entry.get()
+            confirm_new_password = confirm_new_password_entry.get()
+
+            if new_password != confirm_new_password:
+                messagebox.showerror("Error", "Passwords do not match!")
+                return
+
+            conn = sqlite3.connect(DB_NAME)
+            c = conn.cursor()
+            c.execute("SELECT user_id FROM users WHERE username=?", (username,))
+            result = c.fetchone()
+
+            if result:
+                c.execute("UPDATE users SET password=? WHERE username=?", (new_password, username))
+                conn.commit()
+                conn.close()
+                messagebox.showinfo("Success", "Password reset successfully!")
+                self.setup_login()
+            else:
+                messagebox.showerror("Error", "Username not found.")
+
+        self.clear_root()
+
+        tk.Label(self.root, text="Username").pack()
+        username_entry = tk.Entry(self.root)
+        username_entry.pack()
+
+        tk.Label(self.root, text="New Password").pack()
+        new_password_entry = tk.Entry(self.root, show="*")
+        new_password_entry.pack()
+
+        tk.Label(self.root, text="Confirm New Password").pack()
+        confirm_new_password_entry = tk.Entry(self.root, show="*")
+        confirm_new_password_entry.pack()
+
+        tk.Button(self.root, text="Reset Password", command=reset_password).pack()
+
+    def add_user_form(self):
+        def add_user_to_db():
+            first_name = first_name_entry.get()
+            last_name = last_name_entry.get()
+            username = username_entry.get()
+            password = password_entry.get()
+            confirm_password = confirm_password_entry.get()
+
+            if password != confirm_password:
+                messagebox.showerror("Error", "Passwords do not match!")
+                return
+
+            conn = sqlite3.connect(DB_NAME)
+            c = conn.cursor()
+
+            try:
+                c.execute("INSERT INTO users (first_name, last_name, username, password, is_admin) VALUES (?, ?, ?, ?, ?)",
+                          (first_name, last_name, username, password, 0))
+                conn.commit()
+                conn.close()
+
+                messagebox.showinfo("Success", "User registered successfully!")
+                self.setup_login()  # Go back to login screen
+            except sqlite3.IntegrityError:
+                messagebox.showerror("Error", "Username already exists.")
+
+        self.clear_root()
+
+        tk.Label(self.root, text="First Name").pack()
+        first_name_entry = tk.Entry(self.root)
+        first_name_entry.pack()
+
+        tk.Label(self.root, text="Last Name").pack()
+        last_name_entry = tk.Entry(self.root)
+        last_name_entry.pack()
+
+        tk.Label(self.root, text="Username").pack()
+        username_entry = tk.Entry(self.root)
+        username_entry.pack()
+
+        tk.Label(self.root, text="Password").pack()
+        password_entry = tk.Entry(self.root, show="*")
+        password_entry.pack()
+
+        tk.Label(self.root, text="Confirm Password").pack()
+        confirm_password_entry = tk.Entry(self.root, show="*")
+        confirm_password_entry.pack()
+
+        tk.Button(self.root, text="Register", command=add_user_to_db).pack()
 
     def setup_main_app(self):
         self.clear_root()
@@ -143,7 +234,48 @@ class ClimbingApp:
         self.photo_label = tk.Label(self.right_frame)
         self.photo_label.pack()
 
+        # Initially, do not show the comment entry and button
+        self.comment_entry = tk.Entry(self.right_frame)
+        self.add_comment_button = tk.Button(self.right_frame, text="Add Comment", command=self.add_comment)
+
         self.load_routes()
+
+    def add_comment(self):
+        route_id = self.get_selected_route_id()  # Użycie metody get_selected_route_id
+        if not route_id:
+            messagebox.showerror("Error", "No route selected.")
+            return
+
+        comment_text = self.comment_entry.get()
+        if not comment_text:
+            messagebox.showerror("Error", "Comment cannot be empty!")
+            return
+
+        # Save the comment to the database
+        conn = sqlite3.connect(DB_NAME)
+        c = conn.cursor()
+        c.execute("INSERT INTO reviews (user_id, route_id, review_text) VALUES (?, ?, ?)",
+                  (self.user['id'], route_id, comment_text))
+        conn.commit()
+        conn.close()
+
+        # Display the new comment in the detail_text, above the current content
+        current_text = self.detail_text.get(1.0, tk.END)
+        new_comment = f"{self.user['name']}: {comment_text}\n\n" + current_text
+        self.detail_text.delete(1.0, tk.END)
+        self.detail_text.insert(tk.END, new_comment)
+
+        # Clear the comment entry field
+        self.comment_entry.delete(0, tk.END)
+
+        # Optionally, show a success message
+        messagebox.showinfo("Success", "Comment added successfully!")
+
+    def get_selected_route_id(self):
+        selection = self.route_listbox.curselection()
+        if not selection:
+            return None
+        return int(self.route_listbox.get(selection[0]).split(":")[0])
 
     def load_routes(self):
         self.route_listbox.delete(0, tk.END)
@@ -173,23 +305,31 @@ class ClimbingApp:
         selection = self.route_listbox.curselection()
         if not selection:
             return
+
         route_id = int(self.route_listbox.get(selection[0]).split(":")[0])
 
+        self.load_route_details(route_id)
+
+        # Show comment section above the image
+        self.comment_entry.pack(before=self.photo_label)
+        self.add_comment_button.pack(before=self.photo_label)
+
+    def load_route_details(self, route_id):
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
-        c.execute("""
-            SELECT name, protection_type, height, author, grade, gps_coordinates, photo 
-            FROM routes 
-            WHERE route_id=?
-        """, (route_id,))
+        c.execute(""" 
+               SELECT name, protection_type, height, author, grade, gps_coordinates, photo 
+               FROM routes 
+               WHERE route_id=? 
+           """, (route_id,))
         route = c.fetchone()
 
         c.execute("""
-            SELECT u.first_name, u.last_name, r.review_text 
-            FROM reviews r
-            JOIN users u ON r.user_id = u.user_id
-            WHERE r.route_id=?
-        """, (route_id,))
+               SELECT u.first_name, u.last_name, r.review_text 
+               FROM reviews r
+               JOIN users u ON r.user_id = u.user_id
+               WHERE r.route_id=? 
+           """, (route_id,))
         reviews = c.fetchall()
         conn.close()
 
@@ -214,7 +354,6 @@ class ClimbingApp:
                 image.thumbnail((300, 300))
                 self.tk_image = ImageTk.PhotoImage(image)
                 self.photo_label.config(image=self.tk_image)
-
 
     def add_route_form(self):
         def save_route():
@@ -273,6 +412,6 @@ if __name__ == "__main__":
     init_db()
     root = tk.Tk()
     root.title("Climbing Routes App")
-    root.geometry("1000x600")
+    root.geometry("1000x600")  # Przywrócenie ustawionego rozmiaru okna
     app = ClimbingApp(root)
     root.mainloop()
