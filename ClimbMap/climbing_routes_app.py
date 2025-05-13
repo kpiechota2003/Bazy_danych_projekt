@@ -102,31 +102,7 @@ class ClimbingApp:
             messagebox.showerror("Login failed", "Invalid credentials.")
 
     def reset_password_form(self):
-        def reset_password():
-            username = username_entry.get()
-            new_password = new_password_entry.get()
-            confirm_new_password = confirm_new_password_entry.get()
-
-            if new_password != confirm_new_password:
-                messagebox.showerror("Error", "Passwords do not match!")
-                return
-
-            conn = sqlite3.connect(DB_NAME)
-            c = conn.cursor()
-            c.execute("SELECT user_id FROM users WHERE username=?", (username,))
-            result = c.fetchone()
-
-            if result:
-                c.execute("UPDATE users SET password=? WHERE username=?", (new_password, username))
-                conn.commit()
-                conn.close()
-                messagebox.showinfo("Success", "Password reset successfully!")
-                self.setup_login()
-            else:
-                messagebox.showerror("Error", "Username not found.")
-
         self.clear_root()
-
         tk.Label(self.root, text="Username").pack()
         username_entry = tk.Entry(self.root)
         username_entry.pack()
@@ -139,57 +115,40 @@ class ClimbingApp:
         confirm_new_password_entry = tk.Entry(self.root, show="*")
         confirm_new_password_entry.pack()
 
-        tk.Button(self.root, text="Reset Password", command=reset_password).pack()
+        tk.Button(self.root,text="Reset Password",command=lambda: self._handle_password_reset(username_entry.get(),new_password_entry.get(),confirm_new_password_entry.get())).pack()
+
+
+    def _handle_password_reset(self, username, new_password, confirm_password):
+        if self.reset_password(username, new_password, confirm_password):
+            self.setup_login()
+
+    def reset_password(self, username, new_password, confirm_password):
+        if new_password != confirm_password:
+            messagebox.showerror("Error", "Passwords do not match!")
+            return False
+
+        conn = sqlite3.connect(DB_NAME)
+        c = conn.cursor()
+        c.execute("SELECT user_id FROM users WHERE username=?", (username,))
+        result = c.fetchone()
+
+        if result:
+            c.execute("UPDATE users SET password=? WHERE username=?", (new_password, username))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("Success", "Password reset successfully!")
+            return True
+        else:
+            messagebox.showerror("Error", "Username not found.")
+            return False
+
+
+    def on_register(self, first_name, last_name, username, password, confirm_password):
+        success = self.add_user_to_db(first_name, last_name, username, password, confirm_password)
+        if success:
+            self.setup_login()
 
     def add_user_form(self):
-        def add_user_to_db():
-            first_name = first_name_entry.get().strip()
-            last_name = last_name_entry.get().strip()
-            username = username_entry.get().strip()
-            password = password_entry.get()
-            confirm_password = confirm_password_entry.get()
-
-            if not all([first_name, last_name, username, password, confirm_password]):
-                messagebox.showerror("Błąd", "Wszystkie pola muszą być wypełnione.")
-                return
-
-            if not any(char.isalpha() for char in first_name):
-                messagebox.showerror("Błąd", "Imię musi zawierać litery.")
-                return
-            if not any(char.isalpha() for char in last_name):
-                messagebox.showerror("Błąd", "Nazwisko musi zawierać litery.")
-                return
-            if not any(char.isalpha() for char in username):
-                messagebox.showerror("Błąd", "Login musi zawierać litery.")
-                return
-
-            if len(password) < 8:
-                messagebox.showerror("Błąd", "Hasło musi mieć co najmniej 8 znaków.")
-                return
-            if not any(char.isalpha() for char in password):
-                messagebox.showerror("Błąd", "Hasło musi zawierać przynajmniej jedną literę.")
-                return
-            if not any(char.isdigit() for char in password):
-                messagebox.showerror("Błąd", "Hasło musi zawierać przynajmniej jedną cyfrę.")
-                return
-
-            if password != confirm_password:
-                messagebox.showerror("Błąd", "Hasła nie są zgodne.")
-                return
-
-            conn = sqlite3.connect(DB_NAME)
-            c = conn.cursor()
-            try:
-                c.execute("INSERT INTO users (first_name, last_name, username, password, is_admin) VALUES (?, ?, ?, ?, ?)",
-                        (first_name, last_name, username, password, 0))
-                conn.commit()
-                conn.close()
-                messagebox.showinfo("Sukces", "Użytkownik został zarejestrowany.")
-                self.setup_login()
-            except sqlite3.IntegrityError:
-                messagebox.showerror("Błąd", "Taki login już istnieje.")
-
-
         self.clear_root()
 
         tk.Label(self.root, text="First Name").pack()
@@ -212,7 +171,61 @@ class ClimbingApp:
         confirm_password_entry = tk.Entry(self.root, show="*")
         confirm_password_entry.pack()
 
-        tk.Button(self.root, text="Register", command=add_user_to_db).pack()
+        tk.Button(self.root, text="Register", command=lambda: self.on_register(
+            first_name_entry.get().strip(),
+            last_name_entry.get().strip(),
+            username_entry.get().strip(),
+            password_entry.get(),
+            confirm_password_entry.get()
+        )).pack(pady=(5, 2))
+
+        tk.Button(self.root, text="Back to Login", command=self.setup_login).pack(pady=(0, 10))
+
+
+
+
+    
+    def add_user_to_db(self, first_name, last_name, username, password, confirm_password):
+        if not all([first_name, last_name, username, password, confirm_password]):
+            messagebox.showerror("Błąd", "Wszystkie pola muszą być wypełnione.")
+            return False
+
+        if not any(char.isalpha() for char in first_name):
+            messagebox.showerror("Błąd", "Imię musi zawierać litery.")
+            return False
+        if not any(char.isalpha() for char in last_name):
+            messagebox.showerror("Błąd", "Nazwisko musi zawierać litery.")
+            return False
+        if not any(char.isalpha() for char in username):
+            messagebox.showerror("Błąd", "Login musi zawierać litery.")
+            return False
+
+        if len(password) < 8:
+            messagebox.showerror("Błąd", "Hasło musi mieć co najmniej 8 znaków.")
+            return False
+        if not any(char.isalpha() for char in password):
+            messagebox.showerror("Błąd", "Hasło musi zawierać przynajmniej jedną literę.")
+            return False
+        if not any(char.isdigit() for char in password):
+            messagebox.showerror("Błąd", "Hasło musi zawierać przynajmniej jedną cyfrę.")
+            return False
+
+        if password != confirm_password:
+            messagebox.showerror("Błąd", "Hasła nie są zgodne.")
+            return False
+
+        conn = sqlite3.connect(DB_NAME)
+        c = conn.cursor()
+        try:
+            c.execute("INSERT INTO users (first_name, last_name, username, password, is_admin) VALUES (?, ?, ?, ?, ?)",
+                    (first_name, last_name, username, password, 0))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("Sukces", "Użytkownik został zarejestrowany.")
+            return True
+        except sqlite3.IntegrityError:
+            messagebox.showerror("Błąd", "Taki login już istnieje.")
+            return False
 
         
 
@@ -380,38 +393,51 @@ class ClimbingApp:
                 self.tk_image = ImageTk.PhotoImage(image)
                 self.photo_label.config(image=self.tk_image)
 
+    def save_route(self, name, sector, protection, height, author, grade, gps, photo_path):
+        with open(photo_path, 'rb') as f:
+            photo = f.read()
+
+        conn = sqlite3.connect(DB_NAME)
+        c = conn.cursor()
+
+        c.execute("SELECT sector_id FROM sectors WHERE name=?", (sector,))
+        result = c.fetchone()
+        if result:
+            sector_id = result[0]
+        else:
+            c.execute("INSERT INTO sectors (name, location_gps) VALUES (?, ?)", (sector, ""))
+            sector_id = c.lastrowid
+
+        c.execute("""INSERT INTO routes 
+            (name, sector_id, protection_type, height, author, grade, gps_coordinates, photo) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (name, sector_id, protection, height, author, grade, gps, photo))
+        conn.commit()
+        conn.close()
+
+        messagebox.showinfo("Sukces", "Dodano nową drogę wspinaczkową.")
+        self.load_routes()
+
+    def on_save_route(self, name, sector, protection, height_str, author, grade, gps, photo_path, top_window):
+        # Walidacja pól
+        if not all([name, sector, protection, height_str, author, grade, gps, photo_path]):
+            messagebox.showerror("Błąd", "Wszystkie pola muszą być wypełnione.")
+            return
+
+        try:
+            height = int(height_str)
+        except ValueError:
+            messagebox.showerror("Błąd", "Wysokość musi być liczbą całkowitą.")
+            return
+
+        if not os.path.exists(photo_path):
+            messagebox.showerror("Błąd", "Podana ścieżka zdjęcia nie istnieje.")
+            return
+
+        self.save_route(name, sector, protection, height, author, grade, gps, photo_path)
+        top_window.destroy()
+    
     def add_route_form(self):
-        def save_route():
-            name = name_entry.get()
-            sector = sector_entry.get()
-            protection = protection_entry.get()
-            height = int(height_entry.get())
-            author = author_entry.get()
-            grade = grade_entry.get()
-            gps = gps_entry.get()
-            photo_path = photo_var.get()
-
-            with open(photo_path, 'rb') as f:
-                photo = f.read()
-
-            conn = sqlite3.connect(DB_NAME)
-            c = conn.cursor()
-            c.execute("SELECT sector_id FROM sectors WHERE name=?", (sector,))
-            result = c.fetchone()
-            if result:
-                sector_id = result[0]
-            else:
-                c.execute("INSERT INTO sectors (name, location_gps) VALUES (?, ?)", (sector, ""))
-                sector_id = c.lastrowid
-
-            c.execute("INSERT INTO routes (name, sector_id, protection_type, height, author, grade, gps_coordinates, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                      (name, sector_id, protection, height, author, grade, gps, photo))
-            conn.commit()
-            conn.close()
-
-            top.destroy()
-            self.load_routes()
-
         top = tk.Toplevel(self.root)
         top.title("Add New Route")
 
@@ -425,9 +451,14 @@ class ClimbingApp:
 
         name_entry, sector_entry, protection_entry, height_entry, author_entry, grade_entry, gps_entry = entries
         photo_var = tk.StringVar()
+
         tk.Button(top, text="Choose Photo", command=lambda: photo_var.set(filedialog.askopenfilename())).grid(row=7, column=0)
         tk.Entry(top, textvariable=photo_var).grid(row=7, column=1)
-        tk.Button(top, text="Save Route", command=save_route).grid(row=8, columnspan=2)
+
+        tk.Button(top, text="Save Route", command=lambda: self.on_save_route(name_entry.get().strip(),sector_entry.get().strip(),protection_entry.get().strip(),height_entry.get().strip(),author_entry.get().strip(),grade_entry.get().strip(),gps_entry.get().strip(),photo_var.get().strip(),top)).grid(row=8, columnspan=2)
+
+
+
 
     def clear_root(self):
         for widget in self.root.winfo_children():
