@@ -143,29 +143,52 @@ class ClimbingApp:
 
     def add_user_form(self):
         def add_user_to_db():
-            first_name = first_name_entry.get()
-            last_name = last_name_entry.get()
-            username = username_entry.get()
+            first_name = first_name_entry.get().strip()
+            last_name = last_name_entry.get().strip()
+            username = username_entry.get().strip()
             password = password_entry.get()
             confirm_password = confirm_password_entry.get()
 
+            if not all([first_name, last_name, username, password, confirm_password]):
+                messagebox.showerror("Błąd", "Wszystkie pola muszą być wypełnione.")
+                return
+
+            if not any(char.isalpha() for char in first_name):
+                messagebox.showerror("Błąd", "Imię musi zawierać litery.")
+                return
+            if not any(char.isalpha() for char in last_name):
+                messagebox.showerror("Błąd", "Nazwisko musi zawierać litery.")
+                return
+            if not any(char.isalpha() for char in username):
+                messagebox.showerror("Błąd", "Login musi zawierać litery.")
+                return
+
+            if len(password) < 8:
+                messagebox.showerror("Błąd", "Hasło musi mieć co najmniej 8 znaków.")
+                return
+            if not any(char.isalpha() for char in password):
+                messagebox.showerror("Błąd", "Hasło musi zawierać przynajmniej jedną literę.")
+                return
+            if not any(char.isdigit() for char in password):
+                messagebox.showerror("Błąd", "Hasło musi zawierać przynajmniej jedną cyfrę.")
+                return
+
             if password != confirm_password:
-                messagebox.showerror("Error", "Passwords do not match!")
+                messagebox.showerror("Błąd", "Hasła nie są zgodne.")
                 return
 
             conn = sqlite3.connect(DB_NAME)
             c = conn.cursor()
-
             try:
                 c.execute("INSERT INTO users (first_name, last_name, username, password, is_admin) VALUES (?, ?, ?, ?, ?)",
-                          (first_name, last_name, username, password, 0))
+                        (first_name, last_name, username, password, 0))
                 conn.commit()
                 conn.close()
-
-                messagebox.showinfo("Success", "User registered successfully!")
-                self.setup_login()  # Go back to login screen
+                messagebox.showinfo("Sukces", "Użytkownik został zarejestrowany.")
+                self.setup_login()
             except sqlite3.IntegrityError:
-                messagebox.showerror("Error", "Username already exists.")
+                messagebox.showerror("Błąd", "Taki login już istnieje.")
+
 
         self.clear_root()
 
@@ -190,6 +213,8 @@ class ClimbingApp:
         confirm_password_entry.pack()
 
         tk.Button(self.root, text="Register", command=add_user_to_db).pack()
+
+        
 
     def setup_main_app(self):
         self.clear_root()
