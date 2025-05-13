@@ -409,7 +409,8 @@ class ClimbingApp:
             widget.destroy()
 
 if __name__ == "__main__":
-    init_db()
+    if not os.path.exists(DB_NAME):
+        init_db()
     root = tk.Tk()
     root.title("Climbing Routes App")
     root.geometry("1000x600")  # Przywrócenie ustawionego rozmiaru okna
