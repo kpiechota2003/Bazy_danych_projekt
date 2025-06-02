@@ -75,15 +75,31 @@ class ClimbingApp:
 
     def setup_login(self):
         self.clear_root()
-        tk.Label(self.root, text="Username").pack()
-        self.username_entry = tk.Entry(self.root)
-        self.username_entry.pack()
-        tk.Label(self.root, text="Password").pack()
-        self.password_entry = tk.Entry(self.root, show="*")
-        self.password_entry.pack()
-        tk.Button(self.root, text="Login", command=self.login).pack()
-        tk.Button(self.root, text="Register", command=self.add_user_form).pack()  # Button to open add user form
-        tk.Button(self.root, text="Forgot Password", command=self.reset_password_form).pack()  # Added reset password button
+
+        form_frame = ttk.Frame(self.root)
+        ttk.Label(form_frame, text="Welcome to Climbing App", font=("Helvetica", 16)).pack(pady=(10, 20))
+        form_frame.pack(expand=True)
+
+        row1 = ttk.Frame(form_frame)
+        row1.pack(pady=5)
+        ttk.Label(row1, text="Username").pack(side=tk.LEFT, padx=5)
+        self.username_entry = ttk.Entry(row1)
+        self.username_entry.pack(side=tk.LEFT)
+
+        row2 = ttk.Frame(form_frame)
+        row2.pack(pady=5)
+        ttk.Label(row2, text="Password").pack(side=tk.LEFT, padx=5)
+        self.password_entry = ttk.Entry(row2, show="*")
+        self.password_entry.pack(side=tk.LEFT)
+
+        btn_frame = ttk.Frame(form_frame)
+        btn_frame.pack(pady=10)
+
+        ttk.Button(btn_frame, text="Login", command=self.login).pack(pady=2, fill=tk.X)
+        ttk.Button(btn_frame, text="Register", command=self.add_user_form).pack(pady=2, fill=tk.X)
+        ttk.Button(btn_frame, text="Forgot Password", command=self.reset_password_form).pack(pady=2, fill=tk.X)
+
+
 
     def login(self):
         username = self.username_entry.get()
@@ -103,19 +119,20 @@ class ClimbingApp:
 
     def reset_password_form(self):
         self.clear_root()
-        tk.Label(self.root, text="Username").pack()
-        username_entry = tk.Entry(self.root)
-        username_entry.pack()
+        ttk.Label(self.root, text="Username").pack(pady=2)
+        username_entry = ttk.Entry(self.root)
+        username_entry.pack(pady=2)
 
-        tk.Label(self.root, text="New Password").pack()
-        new_password_entry = tk.Entry(self.root, show="*")
-        new_password_entry.pack()
+        ttk.Label(self.root, text="New Password").pack(pady=2)
+        new_password_entry = ttk.Entry(self.root, show="*")
+        new_password_entry.pack(pady=2)
 
-        tk.Label(self.root, text="Confirm New Password").pack()
-        confirm_new_password_entry = tk.Entry(self.root, show="*")
-        confirm_new_password_entry.pack()
+        ttk.Label(self.root, text="Confirm New Password").pack(pady=2)
+        confirm_new_password_entry = ttk.Entry(self.root, show="*")
+        confirm_new_password_entry.pack(pady=2)
 
-        tk.Button(self.root,text="Reset Password",command=lambda: self._handle_password_reset(username_entry.get(),new_password_entry.get(),confirm_new_password_entry.get())).pack()
+        ttk.Button(self.root,text="Reset Password",
+                   command=lambda: self._handle_password_reset(username_entry.get(),new_password_entry.get(),confirm_new_password_entry.get())).pack(pady=5)
 
 
     def _handle_password_reset(self, username, new_password, confirm_password):
@@ -151,27 +168,27 @@ class ClimbingApp:
     def add_user_form(self):
         self.clear_root()
 
-        tk.Label(self.root, text="First Name").pack()
-        first_name_entry = tk.Entry(self.root)
-        first_name_entry.pack()
+        ttk.Label(self.root, text="First Name").pack(pady=2)
+        first_name_entry = ttk.Entry(self.root)
+        first_name_entry.pack(pady=2)
 
-        tk.Label(self.root, text="Last Name").pack()
-        last_name_entry = tk.Entry(self.root)
-        last_name_entry.pack()
+        ttk.Label(self.root, text="Last Name").pack(pady=2)
+        last_name_entry = ttk.Entry(self.root)
+        last_name_entry.pack(pady=2)
 
-        tk.Label(self.root, text="Username").pack()
-        username_entry = tk.Entry(self.root)
-        username_entry.pack()
+        ttk.Label(self.root, text="Username").pack(pady=2)
+        username_entry = ttk.Entry(self.root)
+        username_entry.pack(pady=2)
 
-        tk.Label(self.root, text="Password").pack()
-        password_entry = tk.Entry(self.root, show="*")
-        password_entry.pack()
+        ttk.Label(self.root, text="Password").pack(pady=2)
+        password_entry = ttk.Entry(self.root, show="*")
+        password_entry.pack(pady=2)
 
-        tk.Label(self.root, text="Confirm Password").pack()
-        confirm_password_entry = tk.Entry(self.root, show="*")
-        confirm_password_entry.pack()
+        ttk.Label(self.root, text="Confirm Password").pack(pady=2)
+        confirm_password_entry = ttk.Entry(self.root, show="*")
+        confirm_password_entry.pack(pady=2)
 
-        tk.Button(self.root, text="Register", command=lambda: self.on_register(
+        ttk.Button(self.root, text="Register", command=lambda: self.on_register(
             first_name_entry.get().strip(),
             last_name_entry.get().strip(),
             username_entry.get().strip(),
@@ -179,12 +196,9 @@ class ClimbingApp:
             confirm_password_entry.get()
         )).pack(pady=(5, 2))
 
-        tk.Button(self.root, text="Back to Login", command=self.setup_login).pack(pady=(0, 10))
+        ttk.Button(self.root, text="Back to Login", command=self.setup_login).pack(pady=(0, 10))
 
 
-
-
-    
     def add_user_to_db(self, first_name, last_name, username, password, confirm_password):
         if not all([first_name, last_name, username, password, confirm_password]):
             messagebox.showerror("Błąd", "Wszystkie pola muszą być wypełnione.")
@@ -226,249 +240,398 @@ class ClimbingApp:
         except sqlite3.IntegrityError:
             messagebox.showerror("Błąd", "Taki login już istnieje.")
             return False
-
         
+    def delete_selected_route(self):
+        selection = self.routes_listbox.curselection()
+        if not selection:
+            messagebox.showerror("Error", "No route selected.")
+            return
+
+        selected = self.routes_listbox.get(selection[0])
+        route_id = self.routes.get(selected)
+
+        if not route_id:
+            messagebox.showerror("Error", "Route not found.")
+            return
+
+        confirm = messagebox.askyesno("Confirm", "Are you sure you want to delete this route?")
+        if confirm:
+            conn = sqlite3.connect(DB_NAME)
+            c = conn.cursor()
+            c.execute("DELETE FROM routes WHERE route_id=?", (route_id,))
+            c.execute("DELETE FROM reviews WHERE route_id=?", (route_id,))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("Success", "Route deleted.")
+            self.load_routes()
+            self.route_detail_label.config(text="Select a route to see details", image="")
+
 
     def setup_main_app(self):
         self.clear_root()
 
-        self.left_frame = tk.Frame(self.root)
+        self.left_frame = ttk.Frame(self.root)
         self.left_frame.pack(side=tk.LEFT, fill=tk.Y)
 
-        filter_frame = tk.Frame(self.left_frame)
-        filter_frame.pack()
+        filter_frame = ttk.Frame(self.left_frame)
+        filter_frame.pack(padx=5, pady=5)
 
         self.grade_var = tk.StringVar()
         self.protection_var = tk.StringVar()
         self.sector_var = tk.StringVar()
 
-        tk.Label(filter_frame, text="Grade").grid(row=0, column=0)
-        self.grade_entry = tk.Entry(filter_frame, textvariable=self.grade_var)
-        self.grade_entry.grid(row=0, column=1)
+        ttk.Label(filter_frame, text="Grade").grid(row=0, column=0, sticky="w", padx=2, pady=2)
+        self.grade_entry = ttk.Entry(filter_frame, textvariable=self.grade_var)
+        self.grade_entry.grid(row=0, column=1, padx=2, pady=2)
 
-        tk.Label(filter_frame, text="Protection").grid(row=1, column=0)
-        self.protection_entry = tk.Entry(filter_frame, textvariable=self.protection_var)
-        self.protection_entry.grid(row=1, column=1)
+        ttk.Label(filter_frame, text="Protection").grid(row=1, column=0, sticky="w", padx=2, pady=2)
+        self.protection_entry = ttk.Entry(filter_frame, textvariable=self.protection_var)
+        self.protection_entry.grid(row=1, column=1, padx=2, pady=2)
 
-        tk.Label(filter_frame, text="Sector").grid(row=2, column=0)
-        self.sector_entry = tk.Entry(filter_frame, textvariable=self.sector_var)
-        self.sector_entry.grid(row=2, column=1)
+        ttk.Label(filter_frame, text="Sector").grid(row=2, column=0, sticky="w", padx=2, pady=2)
+        self.sector_entry = ttk.Entry(filter_frame, textvariable=self.sector_var)
+        self.sector_entry.grid(row=2, column=1, padx=2, pady=2)
 
-        tk.Button(filter_frame, text="Filter", command=self.load_routes).grid(row=3, columnspan=2)
+        ttk.Button(filter_frame, text="Filter", command=self.filter_routes).grid(row=3, column=0, columnspan=2, pady=5)
 
-        self.route_listbox = tk.Listbox(self.left_frame, width=40)
-        self.route_listbox.pack(fill=tk.Y, expand=True)
-        self.route_listbox.bind('<<ListboxSelect>>', self.display_route_details)
+        self.routes_listbox = tk.Listbox(self.left_frame, width=40)
+        self.routes_listbox.pack(padx=5, pady=5, fill=tk.BOTH, expand=True)
+        self.routes_listbox.bind("<<ListboxSelect>>", self.display_route_details)
 
-        if self.user['is_admin']:
-            tk.Button(self.left_frame, text="Add Route", command=self.add_route_form).pack()
-
-        self.right_frame = tk.Frame(self.root)
+        self.right_frame = ttk.Frame(self.root)
         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        self.detail_text = tk.Text(self.right_frame, height=20)
-        self.detail_text.pack(fill=tk.BOTH, expand=True)
+        self.route_text_label = ttk.Label(self.right_frame, text="Select a route to see details", justify=tk.LEFT, wraplength=400)
+        self.route_text_label.pack(padx=10, pady=(10, 5))
 
-        self.photo_label = tk.Label(self.right_frame)
-        self.photo_label.pack()
+        self.route_photo_label = ttk.Label(self.right_frame)
+        self.route_photo_label.pack(pady=(0, 10))
 
-        # Initially, do not show the comment entry and button
-        self.comment_entry = tk.Entry(self.right_frame)
-        self.add_comment_button = tk.Button(self.right_frame, text="Add Comment", command=self.add_comment)
+
+        if self.user['is_admin']:
+            ttk.Button(self.right_frame, text="Manage Users", command=self.admin_manage_users).pack(side=tk.BOTTOM, pady=2)
+            ttk.Button(self.right_frame, text="Delete Route", command=self.delete_selected_route).pack(side=tk.BOTTOM, pady=2)
+        ttk.Button(self.right_frame, text="Add Route", command=self.add_route_form).pack(side=tk.BOTTOM, pady=5)
+        ttk.Button(self.right_frame, text="Logout", command=self.setup_login).pack(side=tk.BOTTOM, pady=5)
 
         self.load_routes()
 
-    def add_comment(self):
-        route_id = self.get_selected_route_id()  # Użycie metody get_selected_route_id
-        if not route_id:
-            messagebox.showerror("Error", "No route selected.")
-            return
+    def admin_manage_users(self):
+        self.clear_root()
 
-        comment_text = self.comment_entry.get()
-        if not comment_text:
-            messagebox.showerror("Error", "Comment cannot be empty!")
-            return
+        ttk.Label(self.root, text="User Management", font=("Arial", 14)).pack(pady=5)
 
-        # Save the comment to the database
+        frame = ttk.Frame(self.root)
+        frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        tree = ttk.Treeview(frame, columns=("ID", "Username", "Name", "Admin"), show="headings")
+        tree.heading("ID", text="ID")
+        tree.heading("Username", text="Username")
+        tree.heading("Name", text="Name")
+        tree.heading("Admin", text="Admin")
+
+        tree.pack(fill=tk.BOTH, expand=True)
+
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
-        c.execute("INSERT INTO reviews (user_id, route_id, review_text) VALUES (?, ?, ?)",
-                  (self.user['id'], route_id, comment_text))
-        conn.commit()
+        c.execute("SELECT user_id, username, first_name || ' ' || last_name, is_admin FROM users")
+        users = c.fetchall()
         conn.close()
 
-        # Display the new comment in the detail_text, above the current content
-        current_text = self.detail_text.get(1.0, tk.END)
-        new_comment = f"{self.user['name']}: {comment_text}\n\n" + current_text
-        self.detail_text.delete(1.0, tk.END)
-        self.detail_text.insert(tk.END, new_comment)
+        for u in users:
+            tree.insert("", tk.END, values=u)
 
-        # Clear the comment entry field
-        self.comment_entry.delete(0, tk.END)
+        def delete_selected():
+            selected = tree.selection()
+            if not selected:
+                messagebox.showerror("Error", "No user selected.")
+                return
 
-        # Optionally, show a success message
-        messagebox.showinfo("Success", "Comment added successfully!")
+            user_data = tree.item(selected[0])["values"]
+            user_id = user_data[0]
+            username = user_data[1]
+            is_admin = user_data[3]
 
-    def get_selected_route_id(self):
-        selection = self.route_listbox.curselection()
-        if not selection:
-            return None
-        return int(self.route_listbox.get(selection[0]).split(":")[0])
+            if user_id == self.user['id']:
+                messagebox.showerror("Error", "You cannot delete yourself.")
+                return
 
-    def load_routes(self):
-        self.route_listbox.delete(0, tk.END)
-        query = "SELECT route_id, name FROM routes WHERE 1=1"
+            if is_admin:
+                messagebox.showerror("Error", "You cannot delete another admin.")
+                return
+
+            confirm = messagebox.askyesno("Confirm", f"Delete user '{username}'?")
+            if confirm:
+                conn = sqlite3.connect(DB_NAME)
+                c = conn.cursor()
+                c.execute("DELETE FROM users WHERE user_id=?", (user_id,))
+                conn.commit()
+                conn.close()
+                messagebox.showinfo("Success", "User deleted.")
+                self.admin_manage_users()  # reload
+
+        ttk.Button(self.root, text="Delete Selected User", command=delete_selected).pack(pady=5)
+        ttk.Button(self.root, text="Back", command=self.setup_main_app).pack(pady=2)
+
+
+    def filter_routes(self):
+        grade = self.grade_var.get()
+        protection = self.protection_var.get()
+        sector = self.sector_var.get()
+
+        query = """
+        SELECT routes.route_id, routes.name, sectors.name FROM routes 
+        JOIN sectors ON routes.sector_id = sectors.sector_id
+        WHERE 1=1
+        """
         params = []
-
-        if self.grade_var.get():
-            query += " AND grade LIKE ?"
-            params.append(f"%{self.grade_var.get()}%")
-        if self.protection_var.get():
-            query += " AND protection_type LIKE ?"
-            params.append(f"%{self.protection_var.get()}%")
-        if self.sector_var.get():
-            query += " AND sector_id IN (SELECT sector_id FROM sectors WHERE name LIKE ?)"
-            params.append(f"%{self.sector_var.get()}%")
+        if grade:
+            query += " AND routes.grade LIKE ?"
+            params.append(f"%{grade}%")
+        if protection:
+            query += " AND routes.protection_type LIKE ?"
+            params.append(f"%{protection}%")
+        if sector:
+            query += " AND sectors.name LIKE ?"
+            params.append(f"%{sector}%")
 
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         c.execute(query, params)
-        routes = c.fetchall()
+        rows = c.fetchall()
         conn.close()
 
-        for route in routes:
-            self.route_listbox.insert(tk.END, f"{route[0]}: {route[1]}")
+        self.routes_listbox.delete(0, tk.END)
+        self.routes = {}
+        for route_id, route_name, sector_name in rows:
+            display_name = f"{route_name} (Sector: {sector_name})"
+            self.routes_listbox.insert(tk.END, display_name)
+            self.routes[display_name] = route_id
 
-    def display_route_details(self, event):
-        selection = self.route_listbox.curselection()
-        if not selection:
-            return
-
-        route_id = int(self.route_listbox.get(selection[0]).split(":")[0])
-
-        self.load_route_details(route_id)
-
-        # Show comment section above the image
-        self.comment_entry.pack(before=self.photo_label)
-        self.add_comment_button.pack(before=self.photo_label)
-
-    def load_route_details(self, route_id):
+    def load_routes(self):
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
-        c.execute(""" 
-               SELECT name, protection_type, height, author, grade, gps_coordinates, photo 
-               FROM routes 
-               WHERE route_id=? 
-           """, (route_id,))
+        c.execute("""
+            SELECT routes.route_id, routes.name, sectors.name FROM routes
+            JOIN sectors ON routes.sector_id = sectors.sector_id
+        """)
+        rows = c.fetchall()
+        conn.close()
+
+        self.routes_listbox.delete(0, tk.END)
+        self.routes = {}
+        for route_id, route_name, sector_name in rows:
+            display_name = f"{route_name} (Sector: {sector_name})"
+            self.routes_listbox.insert(tk.END, display_name)
+            self.routes[display_name] = route_id
+
+    def display_route_details(self, event):
+        if not self.routes_listbox.curselection():
+            return
+        selected = self.routes_listbox.get(self.routes_listbox.curselection())
+
+        route_id = self.routes.get(selected)
+        if not route_id:
+            return
+
+        conn = sqlite3.connect(DB_NAME)
+        c = conn.cursor()
+        c.execute("""
+            SELECT name, protection_type, height, author, grade, gps_coordinates, photo FROM routes WHERE route_id=?
+        """, (route_id,))
         route = c.fetchone()
 
         c.execute("""
-               SELECT u.first_name, u.last_name, r.review_text 
-               FROM reviews r
-               JOIN users u ON r.user_id = u.user_id
-               WHERE r.route_id=? 
-           """, (route_id,))
+            SELECT name, location_gps FROM sectors
+            WHERE sector_id = (SELECT sector_id FROM routes WHERE route_id=?)
+        """, (route_id,))
+        sector = c.fetchone()
+
+        c.execute("""
+            SELECT review_text FROM reviews WHERE route_id=?
+        """, (route_id,))
         reviews = c.fetchall()
+
         conn.close()
 
         if route:
-            details = (
-                f"Name: {route[0]}\n"
-                f"Protection: {route[1]}\n"
-                f"Height: {route[2]} m\n"
-                f"Author: {route[3]}\n"
-                f"Grade: {route[4]}\n"
-                f"GPS: {route[5]}\n\n"
-                f"Reviews:\n"
-            )
-            for reviewer in reviews:
-                details += f"{reviewer[0]} {reviewer[1]}: {reviewer[2]}\n"
+            name, protection, height, author, grade, gps, photo = route
+            sector_name, sector_gps = sector if sector else ("Unknown", "Unknown")
+            review_texts = "\n\n".join(r[0] for r in reviews) if reviews else "No reviews."
 
-            self.detail_text.delete(1.0, tk.END)
-            self.detail_text.insert(tk.END, details)
+            details = (f"Route Name: {name}\nProtection: {protection}\nHeight: {height} m\nAuthor: {author}"
+                       f"\nGrade: {grade}\nGPS: {gps}\n\nSector: {sector_name}\nSector GPS: {sector_gps}\n\nReviews:\n{review_texts}")
 
-            if route[6]:  # photo
-                image = Image.open(io.BytesIO(route[6]))
+            self.route_text_label.config(text=details)
+            if photo:
+                image = Image.open(io.BytesIO(photo))
                 image.thumbnail((300, 300))
-                self.tk_image = ImageTk.PhotoImage(image)
-                self.photo_label.config(image=self.tk_image)
+                self.photo_img = ImageTk.PhotoImage(image)
+                self.route_photo_label.config(image=self.photo_img)
+            else:
+                self.route_photo_label.config(image="")
 
-    def save_route(self, name, sector, protection, height, author, grade, gps, photo_path):
-        with open(photo_path, 'rb') as f:
-            photo = f.read()
+            for widget in self.right_frame.winfo_children():
+                if widget not in (self.route_text_label, self.route_photo_label):
+                    widget.destroy()
+
+            row1 = ttk.Frame(self.right_frame)
+            row1.pack(pady=(5, 2))
+            ttk.Button(row1, text="Logout", command=self.setup_login).pack(side=tk.LEFT, padx=5)
+            ttk.Button(row1, text="Add Route", command=self.add_route_form).pack(side=tk.LEFT, padx=5)
+
+            if self.user['is_admin']:
+                row2 = ttk.Frame(self.right_frame)
+                row2.pack(pady=(2, 10))
+                ttk.Button(row2, text="Delete Route", command=self.delete_selected_route).pack(side=tk.LEFT, padx=5)
+                ttk.Button(row2, text="Manage Users", command=self.admin_manage_users).pack(side=tk.LEFT, padx=5)
+
+
+
+    def add_sector_form(self):
+        self.clear_root()
+        ttk.Label(self.root, text="Sector Name").pack(pady=2)
+        sector_name_entry = ttk.Entry(self.root)
+        sector_name_entry.pack(pady=2)
+
+        ttk.Label(self.root, text="GPS Location").pack(pady=2)
+        gps_entry = ttk.Entry(self.root)
+        gps_entry.pack(pady=2)
+
+        def upload_map_photo():
+            filename = filedialog.askopenfilename(title="Select Map Photo",
+                                                  filetypes=[("Image files", "*.jpg *.png *.jpeg")])
+            if filename:
+                with open(filename, "rb") as f:
+                    self.map_photo_blob = f.read()
+                map_photo_label.config(text=os.path.basename(filename))
+
+        map_photo_label = ttk.Label(self.root, text="No photo selected")
+        map_photo_label.pack(pady=2)
+
+        ttk.Button(self.root, text="Upload Map Photo", command=upload_map_photo).pack(pady=2)
+
+        ttk.Button(self.root, text="Save Sector", command=lambda: self.save_sector(sector_name_entry.get(), gps_entry.get())).pack(pady=5)
+        ttk.Button(self.root, text="Back", command=self.setup_main_app).pack(pady=2)
+
+        self.map_photo_blob = None
+
+    def save_sector(self, name, gps):
+        if not name or not gps:
+            messagebox.showerror("Error", "Name and GPS location are required.")
+            return
 
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
-
-        c.execute("SELECT sector_id FROM sectors WHERE name=?", (sector,))
-        result = c.fetchone()
-        if result:
-            sector_id = result[0]
-        else:
-            c.execute("INSERT INTO sectors (name, location_gps) VALUES (?, ?)", (sector, ""))
-            sector_id = c.lastrowid
-
-        c.execute("""INSERT INTO routes 
-            (name, sector_id, protection_type, height, author, grade, gps_coordinates, photo) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (name, sector_id, protection, height, author, grade, gps, photo))
+        c.execute("INSERT INTO sectors (name, location_gps, map_photo) VALUES (?, ?, ?)", (name, gps, self.map_photo_blob))
         conn.commit()
         conn.close()
+        messagebox.showinfo("Success", "Sector added successfully.")
+        self.setup_main_app()
 
-        messagebox.showinfo("Sukces", "Dodano nową drogę wspinaczkową.")
-        self.load_routes()
-
-    def on_save_route(self, name, sector, protection, height_str, author, grade, gps, photo_path, top_window):
-        # Walidacja pól
-        if not all([name, sector, protection, height_str, author, grade, gps, photo_path]):
-            messagebox.showerror("Błąd", "Wszystkie pola muszą być wypełnione.")
-            return
-
-        try:
-            height = int(height_str)
-        except ValueError:
-            messagebox.showerror("Błąd", "Wysokość musi być liczbą całkowitą.")
-            return
-
-        if not os.path.exists(photo_path):
-            messagebox.showerror("Błąd", "Podana ścieżka zdjęcia nie istnieje.")
-            return
-
-        self.save_route(name, sector, protection, height, author, grade, gps, photo_path)
-        top_window.destroy()
-    
     def add_route_form(self):
-        top = tk.Toplevel(self.root)
-        top.title("Add New Route")
+        self.clear_root()
 
-        labels = ["Name", "Sector", "Protection", "Height", "Author", "Grade", "GPS"]
-        entries = []
-        for i, label in enumerate(labels):
-            tk.Label(top, text=label).grid(row=i, column=0)
-            entry = tk.Entry(top)
-            entry.grid(row=i, column=1)
-            entries.append(entry)
+        ttk.Label(self.root, text="Route Name").pack(pady=2)
+        route_name_entry = ttk.Entry(self.root)
+        route_name_entry.pack(pady=2)
 
-        name_entry, sector_entry, protection_entry, height_entry, author_entry, grade_entry, gps_entry = entries
-        photo_var = tk.StringVar()
+        ttk.Label(self.root, text="Select Sector").pack(pady=2)
+        conn = sqlite3.connect(DB_NAME)
+        c = conn.cursor()
+        c.execute("SELECT sector_id, name FROM sectors")
+        sectors = c.fetchall()
+        conn.close()
 
-        tk.Button(top, text="Choose Photo", command=lambda: photo_var.set(filedialog.askopenfilename())).grid(row=7, column=0)
-        tk.Entry(top, textvariable=photo_var).grid(row=7, column=1)
+        sector_names = [s[1] for s in sectors]
+        sector_var = tk.StringVar()
+        sector_combo = ttk.Combobox(self.root, values=sector_names, state="readonly", textvariable=sector_var)
+        sector_combo.pack(pady=2)
 
-        tk.Button(top, text="Save Route", command=lambda: self.on_save_route(name_entry.get().strip(),sector_entry.get().strip(),protection_entry.get().strip(),height_entry.get().strip(),author_entry.get().strip(),grade_entry.get().strip(),gps_entry.get().strip(),photo_var.get().strip(),top)).grid(row=8, columnspan=2)
+        ttk.Label(self.root, text="Protection Type").pack(pady=2)
+        protection_entry = ttk.Entry(self.root)
+        protection_entry.pack(pady=2)
 
+        ttk.Label(self.root, text="Height (m)").pack(pady=2)
+        height_entry = ttk.Entry(self.root)
+        height_entry.pack(pady=2)
 
+        ttk.Label(self.root, text="Author").pack(pady=2)
+        author_entry = ttk.Entry(self.root)
+        author_entry.pack(pady=2)
 
+        ttk.Label(self.root, text="Grade").pack(pady=2)
+        grade_entry = ttk.Entry(self.root)
+        grade_entry.pack(pady=2)
+
+        ttk.Label(self.root, text="GPS Coordinates").pack(pady=2)
+        gps_entry = ttk.Entry(self.root)
+        gps_entry.pack(pady=2)
+
+        photo_label = ttk.Label(self.root, text="No photo selected")
+        photo_label.pack(pady=2)
+
+        def upload_photo():
+            filename = filedialog.askopenfilename(title="Select Route Photo",
+                                                  filetypes=[("Image files", "*.jpg *.png *.jpeg")])
+            if filename:
+                with open(filename, "rb") as f:
+                    self.route_photo_blob = f.read()
+                photo_label.config(text=os.path.basename(filename))
+
+        ttk.Button(self.root, text="Upload Photo", command=upload_photo).pack(pady=2)
+
+        ttk.Button(self.root, text="Save Route", command=lambda: self.save_route(
+            route_name_entry.get(),
+            sector_var.get(),
+            protection_entry.get(),
+            height_entry.get(),
+            author_entry.get(),
+            grade_entry.get(),
+            gps_entry.get()
+        )).pack(pady=5)
+
+        ttk.Button(self.root, text="Back", command=self.setup_main_app).pack(pady=2)
+
+        self.route_photo_blob = None
+
+    def save_route(self, name, sector_name, protection, height, author, grade, gps):
+        if not all([name, sector_name, protection, height, author, grade, gps]):
+            messagebox.showerror("Error", "All fields must be filled.")
+            return
+        try:
+            height = int(height)
+        except ValueError:
+            messagebox.showerror("Error", "Height must be an integer.")
+            return
+
+        conn = sqlite3.connect(DB_NAME)
+        c = conn.cursor()
+        c.execute("SELECT sector_id FROM sectors WHERE name=?", (sector_name,))
+        sector_id = c.fetchone()
+        if not sector_id:
+            messagebox.showerror("Error", "Selected sector not found.")
+            return
+        sector_id = sector_id[0]
+
+        c.execute("""
+            INSERT INTO routes (name, sector_id, protection_type, height, author, grade, gps_coordinates, photo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (name, sector_id, protection, height, author, grade, gps, self.route_photo_blob))
+        conn.commit()
+        conn.close()
+        messagebox.showinfo("Success", "Route added successfully.")
+        self.setup_main_app()
 
     def clear_root(self):
         for widget in self.root.winfo_children():
             widget.destroy()
 
 if __name__ == "__main__":
-    if not os.path.exists(DB_NAME):
-        init_db()
+    init_db()
     root = tk.Tk()
-    root.title("Climbing Routes App")
-    root.geometry("1000x600")  # Przywrócenie ustawionego rozmiaru okna
+    root.title("Climbing App")
+    root.geometry("800x600")
     app = ClimbingApp(root)
+    #root.geometry("400x300")
     root.mainloop()
