@@ -506,7 +506,7 @@ class ClimbingApp:
         # --- Zdjęcie (środek) ---
         if photo:
             image = Image.open(io.BytesIO(photo))
-            image.thumbnail((300, 300))
+            image = image.resize((300, 225), Image.ANTIALIAS)  
             self.photo_img = ImageTk.PhotoImage(image)
             ttk.Label(photo_frame, image=self.photo_img).pack()
         else:
