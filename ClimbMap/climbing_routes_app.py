@@ -451,7 +451,6 @@ class ClimbingApp:
             SELECT review_text FROM reviews WHERE route_id=?
         """, (route_id,))
         reviews = c.fetchall()
-
         conn.close()
 
         if route:
@@ -460,21 +459,38 @@ class ClimbingApp:
             review_texts = "\n\n".join(r[0] for r in reviews) if reviews else "No reviews."
 
             details = (f"Route Name: {name}\nProtection: {protection}\nHeight: {height} m\nAuthor: {author}"
-                       f"\nGrade: {grade}\nGPS: {gps}\n\nSector: {sector_name}\nSector GPS: {sector_gps}\n\nReviews:\n{review_texts}")
+                    f"\nGrade: {grade}\nGPS: {gps}\n\nSector: {sector_name}\nSector GPS: {sector_gps}\n\nReviews:\n{review_texts}")
 
-            self.route_text_label.config(text=details)
+            self.route_text_label.config(
+                text=details,
+                wraplength=700,
+                anchor='w',       
+                justify='left'    
+            )
+
+
+            self.right_frame.update_idletasks()  # Forces geometry update
+
+            frame_width = self.right_frame.winfo_width()
+            frame_height = self.right_frame.winfo_height()
+
             if photo:
                 image = Image.open(io.BytesIO(photo))
-                image.thumbnail((300, 300))
+                fixed_height = frame_height - 400
+                width_percent = fixed_height / float(image.height)
+                new_width = int(float(image.width) * width_percent)
+                image = image.resize((new_width, fixed_height), Image.ANTIALIAS)
                 self.photo_img = ImageTk.PhotoImage(image)
                 self.route_photo_label.config(image=self.photo_img)
             else:
                 self.route_photo_label.config(image="")
 
+            # Clear existing widgets except label and photo
             for widget in self.right_frame.winfo_children():
                 if widget not in (self.route_text_label, self.route_photo_label):
                     widget.destroy()
 
+            # Buttons row
             row1 = ttk.Frame(self.right_frame)
             row1.pack(pady=(5, 2))
             ttk.Button(row1, text="Logout", command=self.setup_login).pack(side=tk.LEFT, padx=5)
@@ -486,6 +502,52 @@ class ClimbingApp:
                 ttk.Button(row2, text="Delete Route", command=self.delete_selected_route).pack(side=tk.LEFT, padx=5)
                 ttk.Button(row2, text="Manage Users", command=self.admin_manage_users).pack(side=tk.LEFT, padx=5)
 
+            # --- Comment Entry ---
+            comment_label = tk.Label(self.right_frame, text="Add Comment:", fg="white", bg="#2e2e2e")
+            comment_label.pack(pady=(10, 2), padx=10, anchor='w')
+
+            self.comment_entry = tk.Entry(self.right_frame, font=("Arial", 12))
+            self.comment_entry.pack(pady=(0, 5), padx=10, fill=tk.X)
+
+            self.add_comment_button = tk.Button(
+                self.right_frame,
+                text="Add Comment",
+                command=self.add_comment,
+                bg="#444",
+                fg="white",
+                activebackground="#666",
+                font=("Arial", 12),
+                relief=tk.FLAT
+            )
+            self.add_comment_button.pack(pady=(0, 15), padx=10, fill=tk.X)
+
+            # Store the selected route id so add_comment can use it
+            self.current_route_id = route_id
+
+
+    def add_comment(self):
+        route_id = getattr(self, 'current_route_id', None)
+        if not route_id:
+            messagebox.showerror("Error", "No route selected.")
+            return
+
+        comment_text = self.comment_entry.get()
+        if not comment_text.strip():
+            messagebox.showerror("Error", "Comment cannot be empty!")
+            return
+
+        conn = sqlite3.connect(DB_NAME)
+        c = conn.cursor()
+        c.execute("INSERT INTO reviews (user_id, route_id, review_text) VALUES (?, ?, ?)",
+                (self.user['id'], route_id, comment_text))
+        conn.commit()
+        conn.close()
+
+        self.comment_entry.delete(0, tk.END)
+        messagebox.showinfo("Success", "Comment added successfully!")
+
+        # Refresh route display
+        self.display_route_details(None)
 
 
     def add_sector_form(self):
