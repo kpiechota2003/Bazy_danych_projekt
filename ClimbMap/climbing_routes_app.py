@@ -492,7 +492,7 @@ class ClimbingApp:
         # --- Dane o ścieżce (lewa góra) ---
         details = (
             f"Route Name: {name}\nProtection: {protection}\nHeight: {height} m\nAuthor: {author}"
-            f"\nGrade: {grade}\nGPS: {gps}\n\nSector: {sector_name}\nSector GPS: {sector_gps}"
+            f"\nGrade: {grade}\nGPS: {gps}\n\nSector: {sector_name}"
         )
         ttk.Label(left_info, text=details, justify=tk.LEFT, anchor='w').pack()
 
