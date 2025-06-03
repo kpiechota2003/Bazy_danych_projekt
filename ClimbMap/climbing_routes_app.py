@@ -301,20 +301,30 @@ class ClimbingApp:
         self.right_frame = ttk.Frame(self.root)
         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        self.route_text_label = ttk.Label(self.right_frame, text="Select a route to see details", justify=tk.LEFT, wraplength=400)
-        self.route_text_label.pack(padx=10, pady=(10, 5))
-
-        self.route_photo_label = ttk.Label(self.right_frame)
-        self.route_photo_label.pack(pady=(0, 10))
-
-
-        if self.user['is_admin']:
-            ttk.Button(self.right_frame, text="Manage Users", command=self.admin_manage_users).pack(side=tk.BOTTOM, pady=2)
-            ttk.Button(self.right_frame, text="Delete Route", command=self.delete_selected_route).pack(side=tk.BOTTOM, pady=2)
-        ttk.Button(self.right_frame, text="Add Route", command=self.add_route_form).pack(side=tk.BOTTOM, pady=5)
-        ttk.Button(self.right_frame, text="Logout", command=self.setup_login).pack(side=tk.BOTTOM, pady=5)
-
+        self.create_right_layout()
         self.load_routes()
+
+
+    def create_right_layout(self):
+        top_frame = ttk.Frame(self.right_frame)
+        top_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
+
+        left_info = ttk.Frame(top_frame)
+        left_info.pack(side=tk.LEFT, anchor='n', expand=True)
+
+        right_buttons = ttk.Frame(top_frame)
+        right_buttons.pack(side=tk.RIGHT, anchor='n')
+
+        self.route_detail_label = ttk.Label(left_info, text="Select a route to see details", justify=tk.LEFT, wraplength=400)
+        self.route_detail_label.pack()
+
+        ttk.Button(right_buttons, text="Logout", command=self.setup_login).pack(pady=2, fill=tk.X)
+        ttk.Button(right_buttons, text="Add Route", command=self.add_route_form).pack(pady=2, fill=tk.X)
+        if self.user['is_admin']:
+            ttk.Button(right_buttons, text="Delete Route", command=self.delete_selected_route).pack(pady=2, fill=tk.X)
+            ttk.Button(right_buttons, text="Manage Users", command=self.admin_manage_users).pack(pady=2, fill=tk.X)
+
+
 
     def admin_manage_users(self):
         self.clear_root()
@@ -429,7 +439,6 @@ class ClimbingApp:
         if not self.routes_listbox.curselection():
             return
         selected = self.routes_listbox.get(self.routes_listbox.curselection())
-
         route_id = self.routes.get(selected)
         if not route_id:
             return
@@ -453,76 +462,70 @@ class ClimbingApp:
         reviews = c.fetchall()
         conn.close()
 
-        if route:
-            name, protection, height, author, grade, gps, photo = route
-            sector_name, sector_gps = sector if sector else ("Unknown", "Unknown")
-            review_texts = "\n\n".join(r[0] for r in reviews) if reviews else "No reviews."
+        if not route:
+            return
 
-            details = (f"Route Name: {name}\nProtection: {protection}\nHeight: {height} m\nAuthor: {author}"
-                    f"\nGrade: {grade}\nGPS: {gps}\n\nSector: {sector_name}\nSector GPS: {sector_gps}\n\nReviews:\n{review_texts}")
+        name, protection, height, author, grade, gps, photo = route
+        sector_name, sector_gps = sector if sector else ("Unknown", "Unknown")
+        review_texts = "\n\n".join(r[0] for r in reviews) if reviews else "No reviews."
 
-            self.route_text_label.config(
-                text=details,
-                wraplength=700,
-                anchor='w',       
-                justify='left'    
-            )
+        # --- Czyszczenie panelu ---
+        for widget in self.right_frame.winfo_children():
+            widget.destroy()
+
+        # --- Układ ogólny ---
+        top_frame = ttk.Frame(self.right_frame)
+        top_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
+
+        left_info = ttk.Frame(top_frame)
+        left_info.pack(side=tk.LEFT, anchor='n', expand=True)
+
+        right_buttons = ttk.Frame(top_frame)
+        right_buttons.pack(side=tk.RIGHT, anchor='n')
+
+        photo_frame = ttk.Frame(self.right_frame)
+        photo_frame.pack(pady=10)
+
+        comments_frame = ttk.Frame(self.right_frame)
+        comments_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+        # --- Dane o ścieżce (lewa góra) ---
+        details = (
+            f"Route Name: {name}\nProtection: {protection}\nHeight: {height} m\nAuthor: {author}"
+            f"\nGrade: {grade}\nGPS: {gps}\n\nSector: {sector_name}\nSector GPS: {sector_gps}"
+        )
+        ttk.Label(left_info, text=details, justify=tk.LEFT, anchor='w').pack()
+
+        # --- Przyciski (prawa góra) ---
+        ttk.Button(right_buttons, text="Logout", command=self.setup_login).pack(pady=2, fill=tk.X)
+        ttk.Button(right_buttons, text="Add Route", command=self.add_route_form).pack(pady=2, fill=tk.X)
+        if self.user['is_admin']:
+            ttk.Button(right_buttons, text="Delete Route", command=self.delete_selected_route).pack(pady=2, fill=tk.X)
+            ttk.Button(right_buttons, text="Manage Users", command=self.admin_manage_users).pack(pady=2, fill=tk.X)
+
+        # --- Zdjęcie (środek) ---
+        if photo:
+            image = Image.open(io.BytesIO(photo))
+            image.thumbnail((300, 300))
+            self.photo_img = ImageTk.PhotoImage(image)
+            ttk.Label(photo_frame, image=self.photo_img).pack()
+        else:
+            ttk.Label(photo_frame, text="No photo").pack()
+
+        # --- Dodawanie komentarza (na górze sekcji) ---
+        ttk.Label(comments_frame, text="Add Comment:").pack(anchor='w', pady=(5, 0))
+        self.comment_entry = ttk.Entry(comments_frame)
+        self.comment_entry.pack(fill=tk.X, pady=2)
+        ttk.Button(comments_frame, text="Add Comment", command=self.add_comment).pack()
+
+        # --- Lista komentarzy (na dole sekcji) ---
+        ttk.Label(comments_frame, text="Reviews:", font=("Arial", 12, "bold")).pack(anchor='w', pady=(10, 0))
+        ttk.Label(comments_frame, text=review_texts, justify=tk.LEFT, anchor='w', wraplength=700).pack(fill=tk.X)
+
+        self.current_route_id = route_id
 
 
-            self.right_frame.update_idletasks()  # Forces geometry update
 
-            frame_width = self.right_frame.winfo_width()
-            frame_height = self.right_frame.winfo_height()
-
-            if photo:
-                image = Image.open(io.BytesIO(photo))
-                fixed_height = frame_height - 400
-                width_percent = fixed_height / float(image.height)
-                new_width = int(float(image.width) * width_percent)
-                image = image.resize((new_width, fixed_height), Image.ANTIALIAS)
-                self.photo_img = ImageTk.PhotoImage(image)
-                self.route_photo_label.config(image=self.photo_img)
-            else:
-                self.route_photo_label.config(image="")
-
-            # Clear existing widgets except label and photo
-            for widget in self.right_frame.winfo_children():
-                if widget not in (self.route_text_label, self.route_photo_label):
-                    widget.destroy()
-
-            # Buttons row
-            row1 = ttk.Frame(self.right_frame)
-            row1.pack(pady=(5, 2))
-            ttk.Button(row1, text="Logout", command=self.setup_login).pack(side=tk.LEFT, padx=5)
-            ttk.Button(row1, text="Add Route", command=self.add_route_form).pack(side=tk.LEFT, padx=5)
-
-            if self.user['is_admin']:
-                row2 = ttk.Frame(self.right_frame)
-                row2.pack(pady=(2, 10))
-                ttk.Button(row2, text="Delete Route", command=self.delete_selected_route).pack(side=tk.LEFT, padx=5)
-                ttk.Button(row2, text="Manage Users", command=self.admin_manage_users).pack(side=tk.LEFT, padx=5)
-
-            # --- Comment Entry ---
-            comment_label = tk.Label(self.right_frame, text="Add Comment:", fg="white", bg="#2e2e2e")
-            comment_label.pack(pady=(10, 2), padx=10, anchor='w')
-
-            self.comment_entry = tk.Entry(self.right_frame, font=("Arial", 12))
-            self.comment_entry.pack(pady=(0, 5), padx=10, fill=tk.X)
-
-            self.add_comment_button = tk.Button(
-                self.right_frame,
-                text="Add Comment",
-                command=self.add_comment,
-                bg="#444",
-                fg="white",
-                activebackground="#666",
-                font=("Arial", 12),
-                relief=tk.FLAT
-            )
-            self.add_comment_button.pack(pady=(0, 15), padx=10, fill=tk.X)
-
-            # Store the selected route id so add_comment can use it
-            self.current_route_id = route_id
 
 
     def add_comment(self):
