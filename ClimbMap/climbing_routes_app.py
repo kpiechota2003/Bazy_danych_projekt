@@ -7,6 +7,7 @@ import os
 
 DB_NAME = "climbing_app.db"
 
+
 # === DATABASE SETUP ===
 def init_db():
     conn = sqlite3.connect(DB_NAME)
@@ -67,6 +68,7 @@ def init_db():
     conn.commit()
     conn.close()
 
+
 class ClimbingApp:
     def __init__(self, root):
         self.root = root
@@ -99,15 +101,14 @@ class ClimbingApp:
         ttk.Button(btn_frame, text="Register", command=self.add_user_form).pack(pady=2, fill=tk.X)
         ttk.Button(btn_frame, text="Forgot Password", command=self.reset_password_form).pack(pady=2, fill=tk.X)
 
-
-
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
 
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
-        c.execute("SELECT user_id, first_name, is_admin FROM users WHERE username=? AND password=?", (username, password))
+        c.execute("SELECT user_id, first_name, is_admin FROM users WHERE username=? AND password=?",
+                  (username, password))
         result = c.fetchone()
         conn.close()
 
@@ -131,9 +132,9 @@ class ClimbingApp:
         confirm_new_password_entry = ttk.Entry(self.root, show="*")
         confirm_new_password_entry.pack(pady=2)
 
-        ttk.Button(self.root,text="Reset Password",
-                   command=lambda: self._handle_password_reset(username_entry.get(),new_password_entry.get(),confirm_new_password_entry.get())).pack(pady=5)
-
+        ttk.Button(self.root, text="Reset Password",
+                   command=lambda: self._handle_password_reset(username_entry.get(), new_password_entry.get(),
+                                                               confirm_new_password_entry.get())).pack(pady=5)
 
     def _handle_password_reset(self, username, new_password, confirm_password):
         if self.reset_password(username, new_password, confirm_password):
@@ -158,7 +159,6 @@ class ClimbingApp:
         else:
             messagebox.showerror("Error", "Username not found.")
             return False
-
 
     def on_register(self, first_name, last_name, username, password, confirm_password):
         success = self.add_user_to_db(first_name, last_name, username, password, confirm_password)
@@ -198,49 +198,48 @@ class ClimbingApp:
 
         ttk.Button(self.root, text="Back to Login", command=self.setup_login).pack(pady=(0, 10))
 
-
     def add_user_to_db(self, first_name, last_name, username, password, confirm_password):
         if not all([first_name, last_name, username, password, confirm_password]):
-            messagebox.showerror("Błąd", "Wszystkie pola muszą być wypełnione.")
+            messagebox.showerror("Error", "All fields must be completed.")
             return False
 
         if not any(char.isalpha() for char in first_name):
-            messagebox.showerror("Błąd", "Imię musi zawierać litery.")
+            messagebox.showerror("Error", "First Name must contain letters.")
             return False
         if not any(char.isalpha() for char in last_name):
-            messagebox.showerror("Błąd", "Nazwisko musi zawierać litery.")
+            messagebox.showerror("Error", "Last Name must contain letters.")
             return False
         if not any(char.isalpha() for char in username):
-            messagebox.showerror("Błąd", "Login musi zawierać litery.")
+            messagebox.showerror("Error", "Login must contain letters.")
             return False
 
         if len(password) < 8:
-            messagebox.showerror("Błąd", "Hasło musi mieć co najmniej 8 znaków.")
+            messagebox.showerror("Error", "The password must be at least 8 characters long.")
             return False
         if not any(char.isalpha() for char in password):
-            messagebox.showerror("Błąd", "Hasło musi zawierać przynajmniej jedną literę.")
+            messagebox.showerror("Error", "The password must contain at least one letter.")
             return False
         if not any(char.isdigit() for char in password):
-            messagebox.showerror("Błąd", "Hasło musi zawierać przynajmniej jedną cyfrę.")
+            messagebox.showerror("Error", "The password must contain at least one number.")
             return False
 
         if password != confirm_password:
-            messagebox.showerror("Błąd", "Hasła nie są zgodne.")
+            messagebox.showerror("Error", "Passwords do not match.")
             return False
 
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         try:
             c.execute("INSERT INTO users (first_name, last_name, username, password, is_admin) VALUES (?, ?, ?, ?, ?)",
-                    (first_name, last_name, username, password, 0))
+                      (first_name, last_name, username, password, 0))
             conn.commit()
             conn.close()
-            messagebox.showinfo("Sukces", "Użytkownik został zarejestrowany.")
+            messagebox.showinfo("Success", "The user has been registered.")
             return True
         except sqlite3.IntegrityError:
-            messagebox.showerror("Błąd", "Taki login już istnieje.")
+            messagebox.showerror("Error", "Such a login already exists.")
             return False
-        
+
     def delete_selected_route(self):
         selection = self.routes_listbox.curselection()
         if not selection:
@@ -265,7 +264,6 @@ class ClimbingApp:
             messagebox.showinfo("Success", "Route deleted.")
             self.load_routes()
             self.route_detail_label.config(text="Select a route to see details", image="")
-
 
     def setup_main_app(self):
         self.clear_root()
@@ -304,7 +302,6 @@ class ClimbingApp:
         self.create_right_layout()
         self.load_routes()
 
-
     def create_right_layout(self):
         top_frame = ttk.Frame(self.right_frame)
         top_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
@@ -315,7 +312,8 @@ class ClimbingApp:
         right_buttons = ttk.Frame(top_frame)
         right_buttons.pack(side=tk.RIGHT, anchor='n')
 
-        self.route_detail_label = ttk.Label(left_info, text="Select a route to see details", justify=tk.LEFT, wraplength=400)
+        self.route_detail_label = ttk.Label(left_info, text="Select a route to see details", justify=tk.LEFT,
+                                            wraplength=400)
         self.route_detail_label.pack()
 
         ttk.Button(right_buttons, text="Logout", command=self.setup_login).pack(pady=2, fill=tk.X)
@@ -323,8 +321,6 @@ class ClimbingApp:
         if self.user['is_admin']:
             ttk.Button(right_buttons, text="Delete Route", command=self.delete_selected_route).pack(pady=2, fill=tk.X)
             ttk.Button(right_buttons, text="Manage Users", command=self.admin_manage_users).pack(pady=2, fill=tk.X)
-
-
 
     def admin_manage_users(self):
         self.clear_root()
@@ -382,7 +378,6 @@ class ClimbingApp:
 
         ttk.Button(self.root, text="Delete Selected User", command=delete_selected).pack(pady=5)
         ttk.Button(self.root, text="Back", command=self.setup_main_app).pack(pady=2)
-
 
     def filter_routes(self):
         grade = self.grade_var.get()
@@ -506,7 +501,7 @@ class ClimbingApp:
         # --- Zdjęcie (środek) ---
         if photo:
             image = Image.open(io.BytesIO(photo))
-            image = image.resize((300, 225), Image.ANTIALIAS)  
+            image = image.resize((300, 225), Image.Resampling.LANCZOS)
             self.photo_img = ImageTk.PhotoImage(image)
             ttk.Label(photo_frame, image=self.photo_img).pack()
         else:
@@ -524,10 +519,6 @@ class ClimbingApp:
 
         self.current_route_id = route_id
 
-
-
-
-
     def add_comment(self):
         route_id = getattr(self, 'current_route_id', None)
         if not route_id:
@@ -542,7 +533,7 @@ class ClimbingApp:
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         c.execute("INSERT INTO reviews (user_id, route_id, review_text) VALUES (?, ?, ?)",
-                (self.user['id'], route_id, comment_text))
+                  (self.user['id'], route_id, comment_text))
         conn.commit()
         conn.close()
 
@@ -551,7 +542,6 @@ class ClimbingApp:
 
         # Refresh route display
         self.display_route_details(None)
-
 
     def add_sector_form(self):
         self.clear_root()
@@ -576,7 +566,8 @@ class ClimbingApp:
 
         ttk.Button(self.root, text="Upload Map Photo", command=upload_map_photo).pack(pady=2)
 
-        ttk.Button(self.root, text="Save Sector", command=lambda: self.save_sector(sector_name_entry.get(), gps_entry.get())).pack(pady=5)
+        ttk.Button(self.root, text="Save Sector",
+                   command=lambda: self.save_sector(sector_name_entry.get(), gps_entry.get())).pack(pady=5)
         ttk.Button(self.root, text="Back", command=self.setup_main_app).pack(pady=2)
 
         self.map_photo_blob = None
@@ -588,7 +579,8 @@ class ClimbingApp:
 
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
-        c.execute("INSERT INTO sectors (name, location_gps, map_photo) VALUES (?, ?, ?)", (name, gps, self.map_photo_blob))
+        c.execute("INSERT INTO sectors (name, location_gps, map_photo) VALUES (?, ?, ?)",
+                  (name, gps, self.map_photo_blob))
         conn.commit()
         conn.close()
         messagebox.showinfo("Success", "Sector added successfully.")
@@ -610,7 +602,7 @@ class ClimbingApp:
 
         sector_names = [s[1] for s in sectors]
         sector_var = tk.StringVar()
-        sector_combo = ttk.Combobox(self.root, values=sector_names, state="readonly", textvariable=sector_var)
+        sector_combo = ttk.Combobox(self.root, values=sector_names, state="normal", textvariable=sector_var)
         sector_combo.pack(pady=2)
 
         ttk.Label(self.root, text="Protection Type").pack(pady=2)
@@ -672,17 +664,24 @@ class ClimbingApp:
 
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
-        c.execute("SELECT sector_id FROM sectors WHERE name=?", (sector_name,))
-        sector_id = c.fetchone()
-        if not sector_id:
-            messagebox.showerror("Error", "Selected sector not found.")
-            return
-        sector_id = sector_id[0]
 
+        # Szukamy sektora po nazwie
+        c.execute("SELECT sector_id FROM sectors WHERE name=?", (sector_name,))
+        result = c.fetchone()
+
+        if result:
+            sector_id = result[0]
+        else:
+            # Jeśli sektor nie istnieje, dodajemy go (z pustymi danymi GPS i bez zdjęcia)
+            c.execute("INSERT INTO sectors (name, location_gps, map_photo) VALUES (?, ?, ?)", (sector_name, "", None))
+            sector_id = c.lastrowid
+
+        # Dodajemy trasę
         c.execute("""
             INSERT INTO routes (name, sector_id, protection_type, height, author, grade, gps_coordinates, photo)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (name, sector_id, protection, height, author, grade, gps, self.route_photo_blob))
+
         conn.commit()
         conn.close()
         messagebox.showinfo("Success", "Route added successfully.")
@@ -692,11 +691,12 @@ class ClimbingApp:
         for widget in self.root.winfo_children():
             widget.destroy()
 
+
 if __name__ == "__main__":
     init_db()
     root = tk.Tk()
     root.title("Climbing App")
     root.geometry("800x600")
     app = ClimbingApp(root)
-    #root.geometry("400x300")
+    # root.geometry("400x300")
     root.mainloop()
